@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, ChevronDown, Blocks, Sword, Filter, PawPrint } from "lucide-react";
+import { Search, ChevronDown, Blocks, Sword, Filter, PawPrint, Terminal } from "lucide-react";
 
 interface ClassGroup {
   implemented: boolean;
@@ -18,9 +18,10 @@ interface ImplementationData {
   blocks: Record<string, ClassGroup>;
   items: Record<string, ClassGroup>;
   entities: Record<string, ClassGroup>;
+  commands: Record<string, ClassGroup>;
 }
 
-type Tab = "blocks" | "items" | "entities";
+type Tab = "blocks" | "items" | "entities" | "commands";
 type StatusFilter = "all" | "complete" | "partial" | "unimplemented";
 type ProgressMetric = "surface" | "classes";
 
@@ -43,18 +44,15 @@ export default function ImplementationTracker() {
 
   const stats = useMemo(() => {
     if (!currentData) return { total: 0, complete: 0, partial: 0, unimplemented: 0 };
-    const classes = Object.entries(currentData);
     const byStatus = { complete: 0, partial: 0, unimplemented: 0 };
+    let total = 0;
+    const classes = Object.entries(currentData as Record<string, ClassGroup>);
     for (const [, g] of classes) {
-      byStatus[getStatus(g)] += progressMetric === "classes" ? 1 : g.entries.length;
+      const count = progressMetric === "classes" ? 1 : g.entries.length;
+      byStatus[getStatus(g)] += count;
+      total += count;
     }
-    return {
-      total: classes.reduce(
-        (sum, [, g]) => sum + (progressMetric === "classes" ? 1 : g.entries.length),
-        0,
-      ),
-      ...byStatus,
-    };
+    return { total, ...byStatus };
   }, [currentData, progressMetric]);
 
   const filtered = useMemo(() => {
@@ -66,7 +64,8 @@ export default function ImplementationTracker() {
         if (statusFilter !== "all" && getStatus(group) !== statusFilter) return false;
         if (!search) return true;
         if (className.toLowerCase().includes(lowerSearch)) return true;
-        return group.entries.some((e) => e.toLowerCase().includes(lowerSearch));
+        let entries: string[] = (group as ClassGroup).entries;
+          return entries.some((e) => e.toLowerCase().includes(lowerSearch));
       })
       .sort((a, b) => {
         const sa = statusOrder[getStatus(a[1])];
@@ -199,6 +198,10 @@ export default function ImplementationTracker() {
             <PawPrint className="size-3.5" />
             Entities
           </TabButton>
+          <TabButton active={tab === "commands"} onClick={() => setTab("commands")}>
+            <Terminal className="size-3.5" />
+            Commands
+          </TabButton>
         </div>
 
         {/* Search */}
@@ -206,7 +209,7 @@ export default function ImplementationTracker() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-teal-500 dark:text-white/40 pointer-events-none" />
           <input
             type="text"
-            placeholder={`Search ${entryLabel} or classes...`}
+            placeholder={entryLabel == "commands" ? `Search commands...` : `Search ${entryLabel} or classes...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-white/5 border border-teal-200/40 dark:border-white/10 rounded-xl text-teal-950 dark:text-white placeholder:text-teal-400 dark:placeholder:text-white/35 focus:outline-none focus:border-emerald-500/60 dark:focus:border-emerald-400/50 transition-all"
@@ -233,16 +236,18 @@ export default function ImplementationTracker() {
 
       {/* Results count */}
       <p className="text-xs text-teal-600 dark:text-white/40 mb-3">
-        Showing {filtered.length} class{filtered.length !== 1 ? "es" : ""} ({filtered.reduce((s, [, g]) => s + g.entries.length, 0)} entries)
+        Showing {filtered.length} class{filtered.length !== 1 ? "es" : ""} ({filtered.reduce((s, [, g]) => s + (g as ClassGroup).entries.length, 0)} entries)
       </p>
 
       {/* Class list */}
+      
       <div className="flex flex-col gap-2">
         {filtered.map(([className, group]) => {
           const isOpen = expanded.has(className);
+          const entries = (group as ClassGroup).entries;
           const matchingEntries = search
-            ? group.entries.filter((e) => e.toLowerCase().includes(search.toLowerCase()))
-            : group.entries;
+            ? entries.filter((e) => e.toLowerCase().includes(search.toLowerCase()))
+            : entries
 
           return (
             <div
@@ -271,7 +276,7 @@ export default function ImplementationTracker() {
 
                 {/* Entry count badge */}
                 <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-white/10 text-teal-600 dark:text-white/50">
-                  {group.entries.length}
+                  {entries.length}
                 </span>
 
                 {/* Status badge */}
@@ -316,7 +321,7 @@ export default function ImplementationTracker() {
 
                   {/* Entries */}
                   <div className={`flex flex-wrap gap-1.5 ${group.todos.length === 0 ? "pt-2 border-t border-teal-100 dark:border-white/5" : ""}`}>
-                    {(search ? matchingEntries : group.entries).map((entry) => (
+                    {(search ? matchingEntries : entries).map((entry) => (
                       <span
                         key={entry}
                         className="text-xs px-2 py-1 rounded-lg bg-teal-50 dark:bg-white/5 text-teal-700 dark:text-white/60 border border-teal-100 dark:border-white/5"
@@ -324,9 +329,9 @@ export default function ImplementationTracker() {
                         {entry}
                       </span>
                     ))}
-                    {search && matchingEntries.length < group.entries.length && (
+                    {search && matchingEntries.length < entries.length && (
                       <span className="text-xs px-2 py-1 text-teal-400 dark:text-white/30 italic">
-                        +{group.entries.length - matchingEntries.length} more
+                        +{entries.length - matchingEntries.length} more
                       </span>
                     )}
                   </div>

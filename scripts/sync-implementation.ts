@@ -22,7 +22,9 @@ if (!STEEL_PATH) {
 const steelRoot = resolve(STEEL_PATH);
 const behaviorDir = join(steelRoot, "steel-core/src/behavior");
 const entityDir = join(steelRoot, "steel-core/src/entity/entities");
+const commandsDir = join(steelRoot, "steel-core/src/command/builtins");
 const classesJsonPath = join(steelRoot, "steel-core/build/classes.json");
+const commandsJsonPath = join(steelRoot, "steel-core/build/commands.json");
 
 // --- Scan .rs files for annotated structs ---
 
@@ -42,6 +44,32 @@ async function collectRsFiles(dir: string): Promise<string[]> {
 
 interface ClassInfo {
   todos: string[];
+}
+
+function extractTodos(lines: string[]): { pos: number; text: string; }[] {
+  // Extract TODO/FIXME comments with their text and position
+  const todoEntries: { pos: number; text: string }[] = [];
+  const todoLinePattern = /\b(TODO|FIXME):?\s*(.*)/;
+  for (let i = 0; i < lines.length; i++) {
+    const lineMatch = lines[i].match(todoLinePattern);
+    if (!lineMatch) continue;
+
+    // Get the initial TODO text
+    let text = lineMatch[2].trim();
+
+    // Collect continuation lines (comment lines that follow without a gap)
+    for (let j = i + 1; j < lines.length; j++) {
+      const cont = lines[j].match(/^\s*\/\/\s{2,}(.*)/);
+      if (!cont) break;
+      text += " " + cont[1].trim();
+    }
+
+    // Calculate byte offset for attribution
+    const bytePos = lines.slice(0, i).reduce((sum, l) => sum + l.length + 1, 0);
+    todoEntries.push({ pos: bytePos, text });
+  }
+
+  return todoEntries;
 }
 
 /**
@@ -74,27 +102,7 @@ async function scanImplementedClasses(dir: string, annotation: string): Promise<
     }
     if (structs.length === 0) continue;
 
-    // Extract TODO/FIXME comments with their text and position
-    const todoEntries: { pos: number; text: string }[] = [];
-    const todoLinePattern = /\b(TODO|FIXME):?\s*(.*)/;
-    for (let i = 0; i < lines.length; i++) {
-      const lineMatch = lines[i].match(todoLinePattern);
-      if (!lineMatch) continue;
-
-      // Get the initial TODO text
-      let text = lineMatch[2].trim();
-
-      // Collect continuation lines (comment lines that follow without a gap)
-      for (let j = i + 1; j < lines.length; j++) {
-        const cont = lines[j].match(/^\s*\/\/\s{2,}(.*)/);
-        if (!cont) break;
-        text += " " + cont[1].trim();
-      }
-
-      // Calculate byte offset for attribution
-      const bytePos = lines.slice(0, i).reduce((sum, l) => sum + l.length + 1, 0);
-      todoEntries.push({ pos: bytePos, text });
-    }
+    let todoEntries = extractTodos(lines);
 
     // Attribute each TODO to the nearest preceding struct
     const todoLists = new Map<string, string[]>();
@@ -117,6 +125,52 @@ async function scanImplementedClasses(dir: string, annotation: string): Promise<
   return classes;
 }
 
+/**
+ * Scans Rust source files for `CommandRegistration::new` calls.
+ * Returns a map of class name -> { todos } where todos is the count of TODO/FIXME
+ * comments attributed to that struct (based on proximity in the source file).
+ */
+async function scanCommandFiles(dir: string): Promise<Map<string, ClassInfo>> {
+  const commands = new Map<string, ClassInfo>();
+
+  const structPattern = new RegExp(
+    `CommandRegistration\\s*::\\s*new\\s*\\(\\s*Identifier\\s*::\\s*vanilla_static\\s*\\(\\s*"(\\w+)"\\s*\\)\\s*,.*\\|_\\|\\s*command\\s*\\(\\s*\\)\\s*\\)`
+  );
+
+  const files = await collectRsFiles(dir);
+  for (const file of files) {
+    const content = await readFile(file, "utf-8");
+    const lines = content.split("\n");
+
+    let match;
+    let command: string | undefined = undefined;
+    while ((match = structPattern.exec(content)) !== null) {
+      command = match[1] as string;
+      break;
+    }
+    if (command === undefined || command === "execute") continue;
+
+    let todos = extractTodos(lines);
+    commands.set("/" + command, { todos: todos.map(t => t.text) ?? [] });
+  }
+
+  // Hardcoded check for the /execute command.
+  const executeFiles = await collectRsFiles(dir + "/execute");
+  for (const file of executeFiles) {
+    let todos = [];
+    for (const file of files) {
+      const content = await readFile(file, "utf-8");
+      const lines = content.split("\n");
+
+      todos.push(...extractTodos(lines));
+    }
+    console.log(todos)
+    commands.set("/execute", { todos: todos.map(t => t.text) ?? [] });
+  }
+
+  return commands;
+}
+
 // --- Parse classes.json ---
 
 interface ClassEntry {
@@ -129,15 +183,18 @@ interface ClassesJson {
   blocks: ClassEntry[];
   items: ClassEntry[];
   entities: ClassEntry[];
+  commands: ClassEntry[];
 }
 
 // --- Main ---
 
-const [classesRaw, implementedBlockClasses, implementedItemClasses, implementedEntityClasses] = await Promise.all([
+const [classesRaw, commandsRaw, implementedBlockClasses, implementedItemClasses, implementedEntityClasses, implementedCommands] = await Promise.all([
   readFile(classesJsonPath, "utf-8").then((raw) => JSON.parse(raw) as ClassesJson),
+  readFile(commandsJsonPath, "utf-8").then((raw) => JSON.parse(raw) as ClassesJson),
   scanImplementedClasses(join(behaviorDir, "blocks"), "block_behavior"),
   scanImplementedClasses(join(behaviorDir, "items"), "item_behavior"),
   scanImplementedClasses(entityDir, "entity_behavior"),
+  scanCommandFiles(commandsDir),
 ]);
 
 const BLACKLISTED_CLASSES = new Set(["AirBlock", "Block", "Item"]);
@@ -165,8 +222,9 @@ function groupByClass(
 const blocks = groupByClass(classesRaw.blocks, implementedBlockClasses);
 const items = groupByClass(classesRaw.items, implementedItemClasses);
 const entities = groupByClass(classesRaw.entities, implementedEntityClasses);
+const commands = groupByClass(commandsRaw.commands, implementedCommands);
 
-const output = { blocks, items, entities };
+const output = { blocks, items, entities, commands };
 
 const outDir = join(dirname(fileURLToPath(import.meta.url)), "../public/data");
 await mkdir(outDir, { recursive: true });
@@ -186,8 +244,10 @@ function summarize(groups: Record<string, { implemented: boolean; todos: string[
 const blockStats = summarize(blocks);
 const itemStats = summarize(items);
 const entityStats = summarize(entities);
+const commandStats = summarize(commands);
 
 console.log(`Wrote ${outPath}`);
 console.log(`Blocks: ${blockStats.implemented}/${blockStats.total} implemented (${blockStats.partial} partial)`);
 console.log(`Items:  ${itemStats.implemented}/${itemStats.total} implemented (${itemStats.partial} partial)`);
 console.log(`Entities: ${entityStats.implemented}/${entityStats.total} implemented (${entityStats.partial} partial)`);
+console.log(`Commands: ${commandStats.implemented}/${commandStats.total} implemented (${commandStats.partial} partial)`);
