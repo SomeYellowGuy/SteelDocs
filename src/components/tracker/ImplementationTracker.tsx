@@ -48,7 +48,6 @@ export default function ImplementationTracker() {
       Object.entries(groups).filter(([className]) => !EXCLUDED_CLASSES.has(className)),
     );
   }, [data, tab]);
-
   const entryLabel = tab === "entities" ? "entities" : tab;
 
   const stats = useMemo(() => {
