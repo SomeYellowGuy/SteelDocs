@@ -3,7 +3,7 @@ title: Command Permissions
 description: How SteelMC commands are built and registered.
 ---
 
-This tutorial will teach you how permissions are defined, and how to utilize custom permissions for more advanced commands.
+This tutorial will teach you how permissions are defined, and how to create custom, and possibly more advanced, permissions.
 
 ## Permissions
 
@@ -73,6 +73,18 @@ Compound `PermissionExpr`s can also be written.
 There are two operators defined for these expressions. These are:
 - The `&` (bitwise AND) operator to combine two different permissions, where both are required.
 - The `|` (bitwise OR) operator to combine two different permissions, where either is required.
+
+Here's an example:
+
+```rust ins={2,3,4,6}
+pub(super) fn registration() -> CommandRegistration<CommandSource> {
+    // This permission requires both example.command.example.a and example.command.example.b.
+    let permission = PermissionExpr::key(PermissionKey::parse("example.command.example.a")?) &
+        PermissionExpr::key(PermissionKey::parse("example.command.example.b")?);
+    CommandRegistration::new(Identifier::new("example", "example"), |_| command())
+        .permission(permission)
+}
+```
 
 :::note
 Permission expressions in rule arguments in the server configuration and in the `/perms` command are not compound expressions. Instead, they contain one permission key and an optional *context selector*, like `minecraft.command.gamemode{domain=lobby}`.

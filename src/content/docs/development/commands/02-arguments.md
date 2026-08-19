@@ -3,8 +3,7 @@ title: Command Arguments
 description: How SteelMC command arguments work
 ---
 
-This tutorial will teach you how argument types are defined in Steel, how they can be specified in the command tree,
-and how to create new argument types.
+This tutorial will teach you how argument types are defined in Steel and how to implement new argument types.
 
 ## Argument Types
 
