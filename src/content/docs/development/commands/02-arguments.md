@@ -65,7 +65,8 @@ fn execute_with_players(
         &TextComponent::plain(format!("Sent greets to {} player(s)", count)),
         false,
     );
-    Ok(1)
+    // Return the player count as the result
+    Ok(count)
 }
 ```
 
