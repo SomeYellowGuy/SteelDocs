@@ -41,14 +41,7 @@ export default function ImplementationTracker() {
       .then(setData);
   }, []);
 
-  const currentData: Record<string, ClassGroup> | undefined = useMemo(() => {
-    const groups = data?.[tab];
-    if (!groups) return undefined;
-    return Object.fromEntries(
-      Object.entries(groups).filter(([className]) => !EXCLUDED_CLASSES.has(className)),
-    );
-  }, [data, tab]);
-
+  const currentData = data?.[tab];
   const entryLabel = tab === "entities" ? "entities" : tab;
 
   const stats = useMemo(() => {
