@@ -21,7 +21,9 @@ pub(super) fn registration() -> CommandRegistration<CommandSource> {
 }
 ```
 
-For non-Vanilla commands, `Identifier::new` can be used for a custom namespace. If you want to define a command with the Vanilla namespace, use `Identifier::vanilla_static`.
+:::note
+For implementing a Vanilla command, use `Identifier::vanilla_static`, like `Identifier::vanilla_static("greet")`.
+:::
 
 However, Steel does not know about this command because we didn't register it yet.
 To register this new command, the module and its `registration()` function can be added to `steel-core/src/command/builtins/mod.rs`. The registration function is then called in the `create_registered_dispatcher()` function in that module:
