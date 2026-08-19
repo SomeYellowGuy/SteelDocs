@@ -72,7 +72,9 @@ fn execute_with_players(
 
 Running `/greet` should still greet the caller just like before, whereas running `/greet <players>` *only* greets players matched by `<players>`.
 
+:::note
 Certain commands have many executors, some possibly doing very similar things, so make sure to refactor your code to use helper functions if needed.
+:::
 
 ## Creating an Argument Type
 
@@ -88,7 +90,7 @@ The return type of the argument is the type of the value a command's executor wi
 For example, for the game mode argument, this is `GameModeValue`, containing the game type we want (`GameType::Survival`, `GameType::Creative`, etc.).
 
 First, we'll have to provide a downcast key for the type returned by our argument. This is done by making it implement the `DowncastType` trait.
-The downcast ID for argument return types is in the format `"steel:command/value/<id>"`.
+The downcast ID for argument return types is in the format `steel:command/value/<id>`.
 
 ```rust
 #[derive(Debug)]
@@ -124,7 +126,7 @@ Some arguments share the same return type. If the argument's returned type **alr
 Next, we'll have to parse our argument.
 
 The argument parser does the work of actually parsing the argument in a command. 
-Just like argument return types, parsers also implement `DowncastType`, but with a different ID format: `"steel:command/parser/<id>"`.
+Just like argument return types, parsers also implement `DowncastType`, but with a different ID format: `steel:command/parser/<id>`.
 For simple parsers, we can use the `unit_argument_parser!` macro:
 
 ```rust

@@ -7,14 +7,11 @@ This tutorial will teach you how permissions are defined, and how to utilize cus
 
 ## Permissions
 
-By default, a registration derives this permission from its ID, which is defined as:
-
-```text
-<namespace>.command.<path>
+By default, a registration derives this permission from its ID, which is defined as `<namespace>.command.<path>`.
 ```
 For example, `minecraft:give` uses `minecraft.command.give`, while `steel:fly` uses `steel.command.fly`.
 
-A *requirement* is a permission required to execute a command. They can be modified in the command registration function.
+The permission for a command can be modified in the command registration function.
 
 ### Using a Permission Expression
 

@@ -117,8 +117,8 @@ fn command() -> CommandNodeBuilder<CommandSource, SteelCommandRuntime> {
 
 ### Building the Command Tree
 
-Now, let's add our executor for the `count` subcommand. The tree says that after the `"player"` literal node is specified,
-the `"count"` literal node must be specified in order to trigger the `count` executor:
+Now, let's add our executor for the `count` subcommand. The tree says that after the `player` literal node is specified,
+the `count` literal node must be specified in order to trigger the `count` executor:
 
 ```rust ins={5,8,9,10,11,12,13,14,15,16,17,18,19,20,21}
 fn command() -> CommandNodeBuilder<CommandSource, SteelCommandRuntime> {
@@ -162,7 +162,7 @@ fn command() -> CommandNodeBuilder<CommandSource, SteelCommandRuntime> {
         .executes(count)
 }
 ```
-results in `/player` being valid syntax (because `executes()` is called on the `"player"` literal command node).
+results in `/player` being valid syntax instead (because `executes()` is called on the `player` literal command node).
 
 :::
 
@@ -192,9 +192,9 @@ fn command() -> CommandNodeBuilder<CommandSource, SteelCommandRuntime> {
 }
 ```
 
-Now, the tree says that after the `"player"` literal node is specified, one of these two have to be specified after:
-- `"count"`, with no other nodes after; and
-- `"find"`, requiring a `username` argument after it.
+Now, the tree says that after the `player` literal node is specified, one of these two have to be specified after:
+- `count`, with no other nodes after; and
+- `find`, requiring a `username` argument after it.
 
 :::note
 There are many types of arguments, which are covered in [Command Arguments](arguments). Here, we use the `word()` argument type to specify a string argument
@@ -232,11 +232,11 @@ fn find(context: &SteelCommandContext<CommandSource>) -> Result<i32, CommandSynt
 
 Now, if you run `/player find <your_username>`, you should get something similar to this:
 
-![Running `/player find <your_username> online`](../../../../assets/commands/complex_command_3.png)
+![Running `/player find <your_username>` while online](../../../../assets/commands/complex_command_3.png)
 
 If you leave the server and make the server run `/player find <your_username>`, it should give us an error:
 
-![Running `/player find <your_username> offline`](../../../../assets/commands/complex_command_4.png)
+![Running `/player find <your_username>` while offline](../../../../assets/commands/complex_command_4.png)
 
 ## Command Aliases
 
