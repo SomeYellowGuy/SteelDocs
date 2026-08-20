@@ -3,7 +3,7 @@ title: Creating Commands
 description: How permissions are defined and created
 ---
 
-This tutorial will teach you how the built-in commands are structured, and how commands are structured and registered.
+This tutorial will teach you how to register commands, and how commands are structured and registered.
 
 ## Creating a Simple Command
 
