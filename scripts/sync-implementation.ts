@@ -131,11 +131,11 @@ async function scanImplementedClasses(dir: string, annotation: string): Promise<
  * comments attributed to that struct (based on proximity in the source file).
  */
 async function scanCommandFiles(dir: string): Promise<Map<string, ClassInfo>> {
-  const commands = new Map<string, ClassInfo>();
-
   const structPattern = new RegExp(
     `CommandRegistration\\s*::\\s*new\\s*\\(\\s*Identifier\\s*::\\s*vanilla_static\\s*\\(\\s*"(\\w+)"\\s*\\)\\s*,.*\\|_\\|\\s*command\\s*\\(\\s*\\)\\s*\\)`
   );
+  const commandImplementations = new Map<string, ClassInfo>();
+
 
   const files = await collectRsFiles(dir);
   for (const file of files) {
@@ -143,15 +143,34 @@ async function scanCommandFiles(dir: string): Promise<Map<string, ClassInfo>> {
     const lines = content.split("\n");
 
     let match;
-    let command: string | undefined = undefined;
+    const commands: { name: string; pos: number }[] = [];
     while ((match = structPattern.exec(content)) !== null) {
-      command = match[1] as string;
+      let command = match[1] as string;
+      if (command === undefined || command === "execute") continue;
+      commands.push({name: command, pos: match.index});
       break;
     }
-    if (command === undefined || command === "execute") continue;
 
-    let todos = extractTodos(lines);
-    commands.set("/" + command, { todos: todos.map(t => t.text) ?? [] });
+    if (commands.length === 0) continue;
+
+    let todoEntries = extractTodos(lines);
+
+    // Attribute each TODO to the nearest preceding struct
+    const todoLists = new Map<string, string[]>();
+    for (const command of commands) todoLists.set(command.name, []);
+
+    for (const todo of todoEntries) {
+      let closest: string | null = null;
+      for (const command of commands) {
+        if (command.pos <= todo.pos) closest = command.name;
+      }
+      if (!closest) closest = commands[0].name;
+      todoLists.get(closest)!.push(todo.text);
+    }
+
+    for (const command of commands) {
+      commandImplementations.set("/" + command.name, { todos: todoLists.get(command.name) ?? [] });
+    }
   }
 
   // Hardcoded check for the /execute command.
@@ -164,11 +183,10 @@ async function scanCommandFiles(dir: string): Promise<Map<string, ClassInfo>> {
 
       todos.push(...extractTodos(lines));
     }
-    console.log(todos)
-    commands.set("/execute", { todos: todos.map(t => t.text) ?? [] });
+    commandImplementations.set("/execute", { todos: todos.map(t => t.text) ?? [] });
   }
 
-  return commands;
+  return commandImplementations;
 }
 
 // --- Parse classes.json ---
@@ -223,6 +241,7 @@ const blocks = groupByClass(classesRaw.blocks, implementedBlockClasses);
 const items = groupByClass(classesRaw.items, implementedItemClasses);
 const entities = groupByClass(classesRaw.entities, implementedEntityClasses);
 const commands = groupByClass(commandsRaw.commands, implementedCommands);
+console.log(implementedCommands)
 
 const output = { blocks, items, entities, commands };
 

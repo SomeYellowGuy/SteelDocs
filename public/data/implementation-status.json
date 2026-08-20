@@ -377,7 +377,9 @@
     },
     "MushroomBlock": {
       "implemented": true,
-      "todos": [],
+      "todos": [
+        "Implement full vanilla behavior beyond can_survive."
+      ],
       "entries": [
         "brown_mushroom",
         "red_mushroom"
@@ -391,7 +393,7 @@
       ]
     },
     "ChiseledBookShelfBlock": {
-      "implemented": true,
+      "implemented": false,
       "todos": [],
       "entries": [
         "chiseled_bookshelf"
@@ -834,7 +836,9 @@
     },
     "NetherPortalBlock": {
       "implemented": true,
-      "todos": [],
+      "todos": [
+        "add this functionality but has low priority"
+      ],
       "entries": [
         "nether_portal"
       ]
@@ -983,7 +987,7 @@
       ]
     },
     "AttachedStemBlock": {
-      "implemented": false,
+      "implemented": true,
       "todos": [],
       "entries": [
         "attached_pumpkin_stem",
@@ -991,7 +995,7 @@
       ]
     },
     "StemBlock": {
-      "implemented": false,
+      "implemented": true,
       "todos": [],
       "entries": [
         "pumpkin_stem",
@@ -1049,7 +1053,9 @@
     },
     "LilyPadBlock": {
       "implemented": true,
-      "todos": [],
+      "todos": [
+        "Implement full vanilla behavior beyond can_survive."
+      ],
       "entries": [
         "lily_pad"
       ]
@@ -1855,7 +1861,9 @@
     },
     "SeaPickleBlock": {
       "implemented": true,
-      "todos": [],
+      "todos": [
+        "Implement full vanilla behavior beyond can_survive."
+      ],
       "entries": [
         "sea_pickle"
       ]
@@ -1980,7 +1988,7 @@
       ]
     },
     "LanternBlock": {
-      "implemented": true,
+      "implemented": false,
       "todos": [],
       "entries": [
         "lantern",
@@ -1992,7 +2000,7 @@
       ]
     },
     "WeatheringLanternBlock": {
-      "implemented": true,
+      "implemented": false,
       "todos": [],
       "entries": [
         "copper_lantern",
@@ -2620,7 +2628,7 @@
       ]
     },
     "HeavyCoreBlock": {
-      "implemented": true,
+      "implemented": false,
       "todos": [],
       "entries": [
         "heavy_core"
@@ -3671,7 +3679,7 @@
       ]
     },
     "PlaceOnWaterBlockItem": {
-      "implemented": true,
+      "implemented": false,
       "todos": [],
       "entries": [
         "lily_pad",
@@ -4237,7 +4245,7 @@
       ]
     },
     "LeadItem": {
-      "implemented": false,
+      "implemented": true,
       "todos": [],
       "entries": [
         "lead"
@@ -4912,7 +4920,9 @@
     },
     "LeashFenceKnotEntity": {
       "implemented": true,
-      "todos": [],
+      "todos": [
+        "Check isInvulnerableToBase."
+      ],
       "entries": [
         "leash_knot"
       ]
