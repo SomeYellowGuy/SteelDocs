@@ -21,7 +21,7 @@ A few simple argument types are defined by *Brigadier*. In Steel, these are acce
 - Strings:
     - A single, continuous string without any whitespace: `ArgumentType::word()`
     - A quoted or unquoted string: `ArgumentType::string()`
-    - A greedy strings that takes the rest of the command text: `ArgumentType::greedy_string()`
+    - A greedy string that takes the rest of the command text: `ArgumentType::greedy_string()`
 
 ### From Minecraft
 
