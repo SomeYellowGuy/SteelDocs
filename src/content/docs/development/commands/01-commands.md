@@ -21,8 +21,12 @@ pub(super) fn registration() -> CommandRegistration<CommandSource> {
 }
 ```
 
+The `new()` method of the `CommandRegistration` struct takes:
+- an [identifier](../../../reference/terminology#identifier). It acts as the unique ID of the command.
+- a function that will provide the *command tree* (or *command graph*) for the command.
+
 :::note
-For implementing a Vanilla command, use `Identifier::vanilla_static`, like `Identifier::vanilla_static("greet")`.
+For implementing a Vanilla command, an identifier with the `minecraft` namespace is used. The `Identifier::vanilla_static()` method can be used for this case.
 :::
 
 However, Steel does not know about this command because we didn't register it yet.
@@ -62,7 +66,7 @@ fn command() -> CommandNodeBuilder<CommandSource, SteelCommandRuntime> {
 }
 ```
 
-That's right! The command itself is actually just a literal node. This node can also be called the command's *root node* because it's the very first node of the command. We can then use the `executes()` method to provide an executor for our node. It also marks *the end* of a command traversal (starting from the root node):
+That's right! The command itself is actually just a literal node. This node can also be called the command's *root node* because it's the very first node of the command. We can then use the `executes()` method to provide an executor for our node. It also marks *the end* of a parsed command (starting from the root node):
 
 ```rust ins={3,5,6,7,8,9,10,11,12,13}
 fn command() -> CommandNodeBuilder<CommandSource, SteelCommandRuntime> {
@@ -146,14 +150,6 @@ fn count(context: &SteelCommandContext<CommandSource>) -> Result<i32, CommandSyn
 }
 ```
 
-If we op ourselves and run `/player count` after running a Steel server alone, we should get this:
-
-![Running `/player count`](../../../../assets/commands/complex_command_1.png)
-
-Running just `/player` should give us an error:
-
-![Running `/player`](../../../../assets/commands/complex_command_2.png)
-
 :::caution
 Be careful with the placement of the node functions. While the above correctly allows `/player count`, writing a tree like
 
@@ -168,6 +164,14 @@ results in `/player` being valid syntax instead (because `executes()` is called 
 
 :::
 
+If we op ourselves and run `/player count` after running a Steel server alone, we should get this:
+
+![Running `/player count`](../../../../assets/commands/complex_command_1.png)
+
+Running just `/player` should give us an error:
+
+![Running `/player`](../../../../assets/commands/complex_command_2.png)
+
 :::note
 To make our command executable by anyone, we could use the `default_access()` method during the command's registration:
 
@@ -178,7 +182,7 @@ pub(super) fn registration() -> CommandRegistration<CommandSource> {
 }
 ```
 
-Permissions are explained in greated detail in [Command Permissions](permissions).
+Permissions are explained in greated detail in [Command Permissions](../04-permissions).
 :::
 
 Let's add the other subcommand called `find`, this time adding a string *word* argument. This time, we add an argument node after our subcommand node:
@@ -199,7 +203,7 @@ Now, the tree says that after the `player` literal node is specified, one of the
 - `find`, requiring a `username` argument after it.
 
 :::note
-There are many types of arguments, which are covered in [Command Arguments](arguments). Here, we use the `word()` argument type to specify a string argument
+There are many types of arguments, which are covered in [Command Arguments](../02-arguments). Here, we use the `word()` argument type to specify a string argument
 that stops at a whitespace character.
 ::::
 
@@ -208,7 +212,7 @@ Finally, we'll add the executor itself:
 ```rust
 fn find(context: &SteelCommandContext<CommandSource>) -> Result<i32, CommandSyntaxError> {
     let players = context.source().server().get_players();
-    // Resolve our username argument
+    // Resolve our username argument.
     let username = context.string("username")?;
 
     if players
@@ -255,5 +259,6 @@ By doing this, `/player count` and `/player_redirect count` should work exactly 
 
 :::note
 Command IDs must be unique. For duplicate commands, the earlier-defined registration is used.
-Because two commands (of the same path) may have a collision, Steel will also register its namespaced ID (for example, `/minecraft:teleport`) as a fallback.
+Because two commands (of the same path) may have a collision, Steel will also register the identifier version
+of the command (for example, `/minecraft:teleport`) for each command as a fallback.
 :::
