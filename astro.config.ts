@@ -143,7 +143,7 @@ export default defineConfig({
               },
               commands: {
                 en: "Commands",
-                es: "Comando",
+                es: "Comandos",
                 de: "Befehl",
               },
               network: {

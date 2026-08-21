@@ -3,7 +3,7 @@ title: Command Permissions
 description: How SteelMC commands are built and registered.
 ---
 
-This tutorial will teach you how permissions are defined, and how to create custom, and possibly more advanced, permissions.
+This tutorial will teach you how permissions are defined and how to create custom permissions.
 
 ## Permissions
 

@@ -117,7 +117,7 @@ This macro also defines the struct of the return type (`GameModeValue` in this c
 argument_value_wrapper!(GameModeValue(GameType), "steel:command/value/game_mode");
 ```
 
-:::note
+:::caution
 Some arguments share the same return type. If the argument's returned type **already implements** `DowncastType`, you don't need to do anything.
 :::
 

@@ -3,7 +3,7 @@ title: Creating Commands
 description: How permissions are defined and created
 ---
 
-This tutorial will teach you how to register commands, and how commands are structured and registered.
+This tutorial will teach you how commands are structured and registered.
 
 ## Creating a Simple Command
 
@@ -94,7 +94,7 @@ something that makes some sense. If you're unsure what to return, just return `1
 
 ### Testing
 
-If you start the server, the command should be registered and available in-game! If you run `/greet`, it should greet you.
+If you start the server, the command should be registered and available in-game! Now, you can run `/greet`, and it should greet you.
 
 ## Creating a More Complex Command
 
