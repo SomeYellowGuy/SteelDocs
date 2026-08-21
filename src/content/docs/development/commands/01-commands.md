@@ -88,8 +88,9 @@ The executors are just functions that take in a `&SteelCommandContext<CommandSou
 They return a number if successful, or a command error if not.
 
 :::note
-Most of the time, the returned number (if the result is successful) is not used, but certain commands like `/execute store` use it, so make sure it returns
-something that makes some sense. If you're unsure what to return, just return `1` (for a single success). Note that for errors, commands return `0` (for no success).
+For vanilla commands, make sure to check the [Minecraft Wiki](https://minecraft.wiki/)'s specific command outputs to accurately implement the command's success or error outputs.
+
+For example, if you're implementing `/advancement`, check https://minecraft.wiki/w/Commands/advancement#Output.
 :::
 
 ### Testing
