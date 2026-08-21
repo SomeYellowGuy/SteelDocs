@@ -46,9 +46,15 @@ interface ClassInfo {
   todos: string[];
 }
 
-function extractTodos(lines: string[]): { pos: number; text: string; }[] {
+/** A single implementation, like a struct or command. */
+type Implementation = { name: string; pos: number }
+
+/** A todo at a line number with some content. */
+type Todo = { pos: number; text: string }
+
+function extractTodos(lines: string[]): Todo[] {
   // Extract TODO/FIXME comments with their text and position
-  const todoEntries: { pos: number; text: string }[] = [];
+  const todoEntries: Todo[] = [];
   const todoLinePattern = /\b(TODO|FIXME):?\s*(.*)/;
   for (let i = 0; i < lines.length; i++) {
     const lineMatch = lines[i].match(todoLinePattern);
@@ -68,8 +74,26 @@ function extractTodos(lines: string[]): { pos: number; text: string; }[] {
     const bytePos = lines.slice(0, i).reduce((sum, l) => sum + l.length + 1, 0);
     todoEntries.push({ pos: bytePos, text });
   }
-
+  
   return todoEntries;
+}
+
+function extractTodoList(lines: string[], implementations: Implementation[]): Map<string, string[]> {
+  const todoEntries = extractTodos(lines);
+
+  const todoLists = new Map<string, string[]>();
+  for (const impl of implementations) todoLists.set(impl.name, []);
+
+  for (const todo of todoEntries) {
+    let closest: string | null = null;
+    for (const impl of implementations) {
+      if (impl.pos <= todo.pos) closest = impl.name;
+    }
+    if (!closest) closest = implementations[0].name;
+    todoLists.get(closest)!.push(todo.text);
+  }
+
+  return todoLists;
 }
 
 /**
@@ -102,20 +126,7 @@ async function scanImplementedClasses(dir: string, annotation: string): Promise<
     }
     if (structs.length === 0) continue;
 
-    let todoEntries = extractTodos(lines);
-
-    // Attribute each TODO to the nearest preceding struct
-    const todoLists = new Map<string, string[]>();
-    for (const struct of structs) todoLists.set(struct.name, []);
-
-    for (const todo of todoEntries) {
-      let closest: string | null = null;
-      for (const struct of structs) {
-        if (struct.pos <= todo.pos) closest = struct.name;
-      }
-      if (!closest) closest = structs[0].name;
-      todoLists.get(closest)!.push(todo.text);
-    }
+    let todoLists = extractTodoList(lines, structs);
 
     for (const struct of structs) {
       classes.set(struct.name, { todos: todoLists.get(struct.name) ?? [] });
@@ -153,20 +164,7 @@ async function scanCommandFiles(dir: string): Promise<Map<string, ClassInfo>> {
 
     if (commands.length === 0) continue;
 
-    let todoEntries = extractTodos(lines);
-
-    // Attribute each TODO to the nearest preceding struct
-    const todoLists = new Map<string, string[]>();
-    for (const command of commands) todoLists.set(command.name, []);
-
-    for (const todo of todoEntries) {
-      let closest: string | null = null;
-      for (const command of commands) {
-        if (command.pos <= todo.pos) closest = command.name;
-      }
-      if (!closest) closest = commands[0].name;
-      todoLists.get(closest)!.push(todo.text);
-    }
+    let todoLists = extractTodoList(lines, commands);
 
     for (const command of commands) {
       commandImplementations.set("/" + command.name, { todos: todoLists.get(command.name) ?? [] });
