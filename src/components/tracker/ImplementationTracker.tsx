@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, ChevronDown, Blocks, Sword, Filter, PawPrint, CheckCircle2, Circle, Wrench } from "lucide-react";
+import { Search, ChevronDown, Blocks, Sword, Filter, PawPrint, Terminal, CheckCircle2, Circle, Wrench } from "lucide-react";
 import SegmentedControl from "./SegmentedControl";
 
 interface ClassGroup {
@@ -42,6 +42,7 @@ interface ImplementationData {
   blocks: Record<string, ClassGroup>;
   items: Record<string, ClassGroup>;
   entities: Record<string, ClassGroup>;
+  commands: Record<string, ClassGroup>;
 }
 
 interface GHIssues {
@@ -51,7 +52,7 @@ interface GHIssues {
   pull_request: Record<string, string> | null;
 }
 
-type Tab = "blocks" | "items" | "entities";
+type Tab = "blocks" | "items" | "entities" | "commands";
 type StatusFilter = "all" | "complete" | "partial" | "unimplemented";
 type ProgressMetric = "surface" | "classes";
 
@@ -299,6 +300,15 @@ export default function ImplementationTracker() {
                 </>
               ),
             },
+            {
+              value: "commands",
+              content: (
+                <>
+                  <Terminal className="size-3.5" />
+                  Commands
+                </>
+              ),
+            },
           ]}
         />
 
@@ -307,7 +317,7 @@ export default function ImplementationTracker() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-teal-500 dark:text-white/40 pointer-events-none" />
           <input
             type="text"
-            placeholder={`Search ${entryLabel} or classes...`}
+            placeholder={entryLabel === "commands" ? `Search ${entryLabel}...` : `Search ${entryLabel} or classes...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="tracker-control w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-white/5 border border-teal-200/40 dark:border-white/10 rounded-2xl text-teal-950 dark:text-white placeholder:text-teal-400 dark:placeholder:text-white/35 focus:outline-none focus:border-emerald-500/60 dark:focus:border-emerald-400/50 transition-all"
