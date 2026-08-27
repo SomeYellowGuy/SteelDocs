@@ -65,8 +65,8 @@ async function iterIssues(pages: number, data: ImplementationData) {
       .then((json: GHIssues[]) => {
         Object.values(json).forEach((pr) => {
 
-          const iter = (group: Record<string, ClassGroup>) => Object.keys(group).forEach((name) => {
-            const regex = new RegExp(`\\b${name.toLowerCase()}\\b`);
+          const iter = (group: Record<string, ClassGroup>, use_slash_regex: boolean) => Object.keys(group).forEach((name) => {
+            const regex = use_slash_regex ? new RegExp(`\\B${name.toLowerCase()}\\b`) : new RegExp(`\\b${name.toLowerCase()}\\b`);
             if (regex.test(pr.title.toLowerCase()) || (pr.body_text && regex.test(pr.body_text.toLowerCase()))) {
               if (!pr.pull_request) {
                 if (group[name].issues) {
@@ -84,10 +84,10 @@ async function iterIssues(pages: number, data: ImplementationData) {
             }
           });
 
-          iter(data.items);
-          iter(data.entities);
-          iter(data.blocks);
-          iter(data.commands);
+          iter(data.items, false);
+          iter(data.entities, false);
+          iter(data.blocks, false);
+          iter(data.commands, true);
         });
       });
   }
