@@ -87,6 +87,7 @@ async function iterIssues(pages: number, data: ImplementationData) {
           iter(data.items);
           iter(data.entities);
           iter(data.blocks);
+          iter(data.commands);
         });
       });
   }
