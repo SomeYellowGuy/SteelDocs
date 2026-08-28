@@ -11,7 +11,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import path, { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const STEEL_PATH = process.argv[2];
@@ -25,7 +25,7 @@ const behaviorDir = join(steelRoot, "steel-core/src/behavior");
 const entityDir = join(steelRoot, "steel-core/src/entity/entities");
 const commandsDir = join(steelRoot, "steel-core/src/command/builtins");
 const classesJsonPath = join(steelRoot, "steel-core/build/classes.json");
-const commandsJsonPath = join(steelRoot, "steel-core/build/commands.json");
+const commandsJsonPath = path.join(__dirname, 'commands.json')
 
 // --- Scan .rs files for annotated structs ---
 
